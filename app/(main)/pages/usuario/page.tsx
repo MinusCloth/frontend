@@ -1,4 +1,4 @@
-// eslint-disable @next/next/no-img-element 
+ 
 'use client';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -19,13 +19,14 @@ import { Projeto } from '@/types';
 import { UsuarioService } from '@/service/usuarioService';
 import { error } from 'console';
 
-// @todo Used 'as any' for types here. Will fix in next version due to onSelectionChange event type issue. 
+
 const Crud = () => {
     let usuarioVazio: Projeto.usuario = {
         id: 0,
         nome:'',
         login:'',
-        senha:''
+        senha:'',
+        email:''
     };
 
     const [usuarios, setUsuarios] = useState<Projeto.usuario[]>([]);
@@ -33,7 +34,7 @@ const Crud = () => {
     const [deleteUsuarioDialog, setDeleteUsuarioDialog] = useState(false);
     const [deleteUsuariosDialog, setDeleteUsuariosDialog] = useState(false);
     const [usuario, setUsuario] = useState<Projeto.usuario>(usuarioVazio);
-    const [selectedUsuarios, setSelectedUsuarios] = useState(null);
+    const [selectedUsuarios, setSelectedUsuarios] = useState<Projeto.usuario[]>([]);
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState('');
     const toast = useRef<Toast>(null);
@@ -43,7 +44,7 @@ const Crud = () => {
 
 
     useEffect(() => {
-        //ProductService.getProducts().then((data) => setProducts(data as any));
+    
         if(usuarios.length == 0) {
         usuarioService.listaTodos().
             then((response)=>{
@@ -86,14 +87,14 @@ const Crud = () => {
                   setUsuarioDialog(false);
                   setUsuario(usuarioVazio);
                   setUsuarios([]);
-                  toast.current.show({
+                  toast.current?.show({
                     severity:'info',
                     summary:'Sucesso!',
                     detail:'Usuario cadastrado com sucesso!'
                   })
                     }).catch((error)=>{
                         console.log(error);
-                        toast.current.show({
+                        toast.current?.show({
                             severity:'error',
                             summary:'Erro!',
                             detail:'Erro ao cadastrar usuario!'+error.data.message
@@ -104,7 +105,7 @@ const Crud = () => {
             .then((response)=>{
                 setUsuarioDialog(false);
                 setUsuario(usuarioVazio);
-                toast.current.show({
+                toast.current?.show({
                   severity:'info',
                   summary:'Sucesso!',
                   detail:'Usuario alterado com sucesso!'
@@ -112,7 +113,7 @@ const Crud = () => {
 
             }).catch((error)=>{
                 console.log(error);
-                        toast.current.show({
+                        toast.current?.show({
                             severity:'error',
                             summary:'Erro!',
                             detail:'Erro ao cadastrar usuario!'+error.data.message
@@ -120,35 +121,7 @@ const Crud = () => {
             });
         }    
 
-       // if (product.name.trim()) {
-          //  let _products = [...(products as any)];
-          //  let _product = { ...product };
-         //   if (product.id) {
-          //     const index = findIndexById(product.id);
-
-            //    _products[index] = _product;
-            //    toast.current?.show({
-           //         severity: 'success',
-            //        summary: 'Successful',
-            //        detail: 'Product Updated',
-           //         life: 3000
-         //       });
-       //     } else {
-        //        _product.id = createId();
-          //      _product.image = 'product-placeholder.svg';
-         //       _products.push(_product);
-         //       toast.current?.show({
-         //           severity: 'success',
-        //            summary: 'Successful',
-        //            detail: 'Product Created',
-        //            life: 3000
-        //        });
-       //     }
-
-      //      setProducts(_products as any);
-      //      setProductDialog(false);
-      //      setProduct(emptyProduct);;
-     //   }
+      
 
     }
 
@@ -163,6 +136,7 @@ const Crud = () => {
     };
 
     const deleteUsuario = () => {
+        if(usuario.id){
         usuarioService.excluir(usuario.id).then((response)=>{
             setUsuario(usuarioVazio);
             setDeleteUsuarioDialog(false);
@@ -180,35 +154,11 @@ const Crud = () => {
                     life: 3000
         });
     });
-     //  let _products = (usuario as any)?.filter((val: any) => val.id !== usuario.id);
-       // setUsuario(_usuario);
-       // setDeleteUsuarioDialog(false);
-      //  setUsuario(usuarioVazio);
-      //  
-        //    life: 3000
-       // });
-    };
+     
 
-    //const findIndexById = (id: string) => {
-        //let index = -1;
-        //for (let i = 0; i < (products as any)?.length; i++) {
-            //if ((products as any)[i].id === id) {
-              //  index = i;
-            //    break;
-          //  }
-        //}
+        }    };
 
-      //  return index;
-    //};
-
-    //const createId = () => {
-        //let id = '';
-        //let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        //for (let i = 0; i < 5; i++) {
-          //  id += chars.charAt(Math.floor(Math.random() * chars.length));
-        //}
-      //  return id;
-    //};
+    
 
     const exportCSV = () => {
         dt.current?.exportCSV();
@@ -219,23 +169,37 @@ const Crud = () => {
     };
 
     const deleteSelectedUsuarios = () => {
-        //let _products = (products as any)?.filter((val: any) => !(selectedProducts as any)?.includes(val));
-        //setProducts(_products);
-        //setDeleteProductsDialog(false);
-        //setSelectedProducts(null);
-        //toast.current?.show({
-            //severity: 'success',
-          //  summary: 'Successful',
-        //    detail: 'Products Deleted',
-      //      life: 3000
-    //    });
+        
+        Promise.all(selectedUsuarios.map(async(_usuario) => {
+        if(_usuario.id){
+           await usuarioService.excluir(_usuario.id)
+                .then((response)=>{
+                    
+                }).catch((error) => {
+                    console.log(error);
+                });
+        }    
+        })).then((response)=>{
+            setUsuarios([]);
+            setSelectedUsuarios([]);
+            setDeleteUsuarioDialog(false);
+             toast.current?.show({
+                    severity: 'success',
+                    summary: 'Sucesso!',
+                    detail: 'Usuarios deletados com sucesso',
+                    life: 3000});
+
+        }).catch((error)=>{
+
+             toast.current?.show({
+                    severity: 'error',
+                    summary: 'Erro!',
+                    detail: 'Erro ao deletar usuarios',
+                    life: 3000});
+        });
     };
 
-    //const onCategoryChange = (e: RadioButtonChangeEvent) => {
-        //let _product = { ...product };
-       // _product['category'] = e.value;
-      //  setProduct(_product);
-   // };
+    
 
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, name: string) => {
         const val = (e.target && e.target.value) || '';
@@ -245,13 +209,6 @@ const Crud = () => {
         setUsuario(_usuario);
     };
 
-    //const onInputNumberChange = (e: InputNumberValueChangeEvent, name: string) => {
-       // const val = e.value || 0;
-       // let _product = { ...product };
-     //   _product[`${name}`] = val;
-
-      //  setProduct(_product);
-  //  };
 
     const leftToolbarTemplate = () => {
         return (

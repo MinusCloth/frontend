@@ -8,4 +8,10 @@ declare namespace Projeto{
     }
 
 
+    type recurso ={
+        id?: number;
+        nome:string;
+        chave:string;
+    }
+
 }
